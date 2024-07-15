@@ -8,7 +8,7 @@
             <tree string="Booking Order Configurations">
                 <field name="max_booking_order" widget="float" string="Max Booking Order"/>
                 <field name="qty_limit_percentage" widget="float" string="Quantity Limit Percentage"/>
-                <field name="product_template_id" string="Product"/>
+                <field name="product_id" string="Product"/>
             </tree>
         </field>
     </record>
@@ -23,7 +23,7 @@
                         <group col="2">
                             <field name="max_booking_order" widget="float" string="Max Booking Order"/>
                             <field name="qty_limit_percentage" widget="float" string="Quantity Limit Percentage"/>
-                            <field name="product_template_id" string="Product"/>
+                            <field name="product_id" string="Product"/>
                         </group>
                     </group>
 

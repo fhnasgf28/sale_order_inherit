@@ -23,6 +23,7 @@
         "data/ir_cron.xml",
         "views/sale_order_views.xml",
         "views/product_template_views.xml",
+        "views/purchase_order_views.xml",
         "views/configuration_booking_order_views.xml",
         "views/menus.xml",
     ],

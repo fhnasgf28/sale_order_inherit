@@ -42,6 +42,7 @@ class SaleOrder(models.Model):
                 'partner_id': record.partner_id.id,
                 'date_order': fields.Datetime.now(),
                 'name': record.name,
+                'is_booking': True,
                 'order_line': [(0, 0, {
                     'product_id': line.product_id.id,
                     'name': line.name,
