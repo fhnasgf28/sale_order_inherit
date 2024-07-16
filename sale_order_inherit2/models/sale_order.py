@@ -1,6 +1,5 @@
 from odoo import models, fields, api, _
 from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
 from odoo.exceptions import ValidationError
 
 
@@ -9,6 +8,7 @@ class SaleOrder(models.Model):
 
     is_booking = fields.Boolean(string='Is Booking', default=False)
     date_created = fields.Datetime(string='Creation Date', default=fields.Datetime.now)
+    rfq_created = fields.Boolean(string="RFQ Created", default=False)
 
     @api.model
     def create(self, vals):
@@ -39,6 +39,8 @@ class SaleOrder(models.Model):
 
     def action_create_rfq(self):
         for record in self:
+            if record.rfq_created:
+                raise ValidationError('Product has already been added to RFQ.')
             rfq = self.env['purchase.order'].create({
                 'partner_id': record.partner_id.id,
                 'date_order': fields.Datetime.now(),
@@ -52,6 +54,7 @@ class SaleOrder(models.Model):
                     'date_planned': fields.Datetime.now(),
                 }) for line in record.order_line]
             })
+            record.rfq_created = True
             return {
                 'name': 'RFQ Created',
                 'type': 'ir.actions.act_window',
@@ -59,6 +62,19 @@ class SaleOrder(models.Model):
                 'res_id': rfq.id,
                 'view_mode': 'form',
             }
+
+    @api.constrains('order_line')
+    def _check_order_line_limit(self):
+        config = self.env['booking.order.config'].search([], limit=1)
+        if config:
+            for order in self:
+                total_qty = sum(
+                    line.product_id.qty_available + (
+                            line.product_id.qty_available * config.qty_limit_percentage / 100)
+                    for line in order.order_line
+                )
+                if total_qty > config.max_booking_order:
+                    raise ValidationError('Total booking quantity exceeds the maximum limit per order.')
 
 
 class SaleOrderLine(models.Model):
@@ -94,4 +110,5 @@ class SaleOrderLine(models.Model):
         for line in self:
             config = self.env['booking.order.config'].search([], limit=1)
             if config and line.qty_booking > config.max_booking_order:
-                raise ValidationError(_('Quantity cannot exceed the maximum booking order of %s') % config.max_booking_order)
+                raise ValidationError(
+                    _('Quantity cannot exceed the maximum booking order of %s') % config.max_booking_order)
